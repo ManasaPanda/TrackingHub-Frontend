@@ -1,0 +1,133 @@
+<div class="vh-100 d-flex flex-column justify-content-center align-items-center bg-light">
+  <!-- Success Modal -->
+  <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title fw-bold"><i class="bi bi-check-circle-fill"></i> Success</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center p-4">
+          <i class="bi bi-check-circle-fill text-success display-3"></i>
+          <p class="mt-3 fs-5 fw-semibold text-dark">{{ successMessage }}</p>
+        </div>
+        <div class="modal-footer d-flex justify-content-center" *ngIf="!referalcodeverified">
+          <button type="button" class="btn btn-success px-4" (click)="closeandredirecthome()">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Modal -->
+  <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Error</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center p-4">
+          <i class="bi bi-exclamation-triangle-fill text-danger display-3"></i>
+          <p class="mt-3 fs-5 fw-semibold text-dark">{{ errorMessage }}</p>
+        </div>
+        <div class="modal-footer d-flex justify-content-center" *ngIf="!referalcodeverified">
+          <button type="button" class="btn btn-danger px-4" (click)="hideModals('errorModal')">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Register Card -->
+  <div class="card p-5 shadow-lg border-0 rounded-4" style="max-width: 400px; width: 100%;">
+    <h2 class="text-center fw-bold text-success">Register</h2>
+    <p class="text-center text-muted">Create your account in seconds</p>
+    <form #registerForm="ngForm" (ngSubmit)="onSubmit()" novalidate>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Full Name</label>
+        <input type="text" class="form-control rounded-3" placeholder="Enter your full name" [(ngModel)]="user.Name"
+          name="fullName" #fullName="ngModel" required minlength="3">
+        <div class="text-danger" *ngIf="fullName.invalid && fullName.touched">
+          <small *ngIf="fullName.errors?.required">Full Name is required.</small>
+          <small *ngIf="fullName.errors?.minlength">Must be at least 3 characters long.</small>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Email</label>
+        <input type="email" class="form-control rounded-3" placeholder="Enter your email" [(ngModel)]="user.email"
+          name="email" #email="ngModel" required email pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$">
+        <div class="text-danger" *ngIf="email.invalid && email.touched">
+          <small *ngIf="email.errors?.required">Email is required.</small>
+          <small *ngIf="email.errors?.pattern">Enter a valid email (e.g., example@domain.com).</small>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Password</label>
+        <input type="password" class="form-control rounded-3" placeholder="Create a password"
+          [(ngModel)]="user.password" name="password" #password="ngModel" required minlength="6"
+          pattern="^(?=.*[A-Z])(?=.*[\W_]).{6,}$">
+        <div class="text-danger" *ngIf="password.invalid && password.touched">
+          <small *ngIf="password.errors?.required">password is required.</small>
+          <small *ngIf="password.errors?.minlength">Must be at least 6 characters long.</small>
+          <small *ngIf="password.errors?.pattern">
+            Password must contain at least one uppercase letter and one special character.
+          </small>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Age</label>
+        <input type="number" class="form-control rounded-3" placeholder="Enter your Age" [(ngModel)]="user.age"
+          name="age" #Age="ngModel" required min="18" max="100" ngModelOptions="{ updateOn: 'blur' }">
+        <div class="text-danger" *ngIf="Age.invalid && Age.touched">
+          <small *ngIf="Age.errors?.required">Age is required.</small>
+          <small *ngIf="Age.errors?.min">Age Must be at least 18 years.</small>
+          <small *ngIf="Age.errors?.max">Age cannot be more than 100 years.</small>
+        </div>
+      </div>
+      <!-- <div class="mb-3">
+        <label class="form-label fw-semibold">Referral Code</label>
+        <input type="text" class="form-control rounded-3" placeholder="Enter Referral Code"
+          [(ngModel)]="AdminreferralCode" name="Referralcode">
+      </div> -->
+      <div class="form-check mb-3">
+        <input type="checkbox" class="form-check-input" id="isAdmin" [(ngModel)]="user.isAdmin" name="isAdmin"
+          (change)="Openadminmodal()" [disabled]="registerForm.invalid"
+          title="Please note: To register as an admin, you need a referral code.">
+        <label class="form-check-label fw-semibold" for="isAdmin">Register as Admin</label>
+      </div>
+      <!-- Admin Ref Modal -->
+      <div class="modal fade" id="adminModal" tabindex="1" aria-labelledby="adminModalLabel" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
+        <div [ngClass]="{'success-message':!iferror,'error-message':iferror}" *ngIf="message">
+          {{ message }}
+        </div>
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="adminModalLabel">Admin Verification</h5>
+              <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
+            </div>
+            <div class="modal-body">
+              <label class="form-label fw-semibold">Referral Code</label>
+              <input type="text" class="form-control rounded-3" placeholder="Enter Referral Code"
+                [(ngModel)]="AdminreferralCode" name="Referralcode">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" (click)="CloseAdminModal()">Close</button>
+              <button type="button" class="btn btn-primary" (click)="ProceedWithAdmin()">Proceed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-success w-100 rounded-3 py-2" type="submit"
+        [disabled]="registerForm.invalid">Register</button>
+    </form>
+    <p class="text-center mt-3">
+      Already have an account? <a routerLink="/login" class="text-decoration-none text-success fw-semibold">Login</a>
+    </p>
+  </div>
+  <!-- Footer Section -->
+  <div class="mt-4 text-center">
+    <p class="mb-2 fw-semibold">Want to go back?</p>
+    <button class="btn btn-outline-primary rounded-3 px-4 py-2" routerLink="/">Go to Home</button>
+  </div>
+</div>
